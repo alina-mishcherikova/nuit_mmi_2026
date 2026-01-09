@@ -18,15 +18,45 @@
         </div>
 
         <!-- Main Title -->
-        <h1 class="main-title">CHICKEN WARRIOR</h1>
+        <h1 class="main-title">HANDS ON THE FARM</h1>
 
         <!-- Buttons Section -->
         <div class="buttons-container">
-            <button class="btn btn-primary" onclick="window.location.href='index.html'">
+            <button class="btn btn-primary" onclick="showMap()">
                 <span>START</span>
             </button>
         </div>
 
         
+
+        <!-- Map Overlay (caché par défaut) -->
+        <div id="mapOverlay" class="map-overlay" style="display: none;" onclick="window.location.href='index.html'">
+            <img src="assets/map.png" alt="Map">
+        </div>
+    </div>
+
+    <script>
+        // Charger et jouer la musique de lobby
+        const lobbyMusic = new Audio('assets/lobby.mp3');
+        lobbyMusic.loop = true;
+        lobbyMusic.volume = 0.4;
+        
+        // Jouer la musique dès le chargement de la page
+        window.addEventListener('load', () => {
+            lobbyMusic.play().catch(e => {
+                // Si le navigateur bloque l'autoplay, jouer au premier clic
+                document.body.addEventListener('click', () => {
+                    lobbyMusic.play();
+                }, { once: true });
+            });
+        });
+        
+        function showMap() {
+            document.getElementById('mapOverlay').style.display = 'flex';
+            // Jouer un son de clic
+            const clickSound = new Audio('assets/button-press.mp3');
+            clickSound.play();
+        }
+    </script>
 </body>
 </html>

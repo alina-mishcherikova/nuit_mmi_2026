@@ -23,22 +23,45 @@ let roundCompleteTimer = 0;
 let closestBallIndex = -1;
 let ultimateActive = false; // L'ultime est activé
 let ultimateFreezeTimer = 0; // Timer pour le freeze de 5 secondes
+let calories = 0;
+let totalNormalChickens = 0; // Compteur de poules normales
+let totalGoldenChickens = 0; // Compteur de poules dorées
+let totalSoldierChickens = 0; // Compteur de poules avec casque
+let maxNormalChickens = 8; // Entre 6 et 10
+let maxGoldenChickens = 5; // Exactement 5
+let maxSoldierChickens = 5; // Entre 4 et 6
 let chickenSprite; // Sprite de la poule basique
 let chickenGoldSprite; // Sprite de la poule dorée
 let chickenSoldierSprite; // Sprite de la poule avec casque
 let chickenTransitionSprite; // Sprite de transition casque -> normal
 let foxSprite; // Sprite du renard
 let foxJumpSprite; // Sprite du renard qui saute pour manger
+let foxSleepingSprite; // Sprite du renard qui dort (mode nuit)
 let heartSprite; // Sprite sheet des cœurs pour les vies
+let ultimateSprite; // Sprite sheet de l'ultime
+let scoreSprite; // Sprite pour le fond du score
 let handSprite; // Sprite de la main (frame 0 = ouverte, frame 1 = fermée)
 let backgroundDay; // Background pour les manches
 let backgroundNight; // Background pour la fin de manche
 let foxFrame = 0; // Frame actuelle du renard
 let foxFrameTimer = 0; // Timer pour l'animation du renard
+let foxSleepingFrame = 0; // Frame du renard qui dort
+let foxSleepingTimer = 0; // Timer pour l'animation du renard qui dort
 let foxJumping = false; // Le renard est en train de sauter
 let foxJumpFrame = 0; // Frame du saut
 let foxJumpTimer = 0; // Timer pour le saut
 let pendingChickenToEat = null; // Poule en attente d'être mangée
+
+// Sons
+let soundPoule;
+let soundMort;
+let soundLobby;
+let soundLevelUp;
+let soundGameOver;
+let soundButtonPress;
+let soundBackground;
+let soundHeartbreak;
+let soundUltime;
 
 function preload() {
   // Load the handPose model 
@@ -50,11 +73,25 @@ function preload() {
   chickenTransitionSprite = loadImage('assets/anim_helmet-Sheet.png');
   foxSprite = loadImage('assets/Fox-Normal-Sheet.png');
   foxJumpSprite = loadImage('assets/Fox-Jump-Sheet.png');
+  foxSleepingSprite = loadImage('assets/Fox-Sleeping-Sheet.png');
   heartSprite = loadImage('assets/coeur-export.png');
+  ultimateSprite = loadImage('assets/ultime.png');
+  scoreSprite = loadImage('assets/Score.png');
   handSprite = loadImage('assets/Hand-Sheet.png');
   // Charger les backgrounds
   backgroundDay = loadImage('assets/background_day.png');
   backgroundNight = loadImage('assets/background_night.png');
+  
+  // Charger les sons
+  soundPoule = loadSound('assets/poule.mp3');
+  soundMort = loadSound('assets/mort.mp3');
+  soundLobby = loadSound('assets/lobby.mp3');
+  soundLevelUp = loadSound('assets/level_up.mp3');
+  soundGameOver = loadSound('assets/game-over.mp3');
+  soundButtonPress = loadSound('assets/button-press.mp3');
+  soundBackground = loadSound('assets/backgound-music.mp3');
+  soundHeartbreak = loadSound('assets/heartbreak.mp3');
+  soundUltime = loadSound('assets/ultime.wav');
 }
 
 function setup() {
@@ -66,6 +103,13 @@ function setup() {
   smoothHandX = width / 2;
   smoothHandY = height / 2;
   life = 5; // Initialiser les vies
+  
+  // Lancer la musique de fond en boucle
+  if (soundBackground) {
+    soundBackground.loop();
+    soundBackground.setVolume(0.3);
+  }
+  
   // Démarrer la première vague 
   startNewRound();
 }
@@ -121,6 +165,12 @@ function draw() {
       if (closestBallIndex >= 0) {
         dragging = true;
         draggedBallIndex = closestBallIndex;
+        
+        // Jouer le son de grab
+        if (soundPoule) {
+          soundPoule.setVolume(0.3);
+          soundPoule.play();
+        }
 
         let ball = balls[closestBallIndex];
         dragSetX = ball.x - handX;
@@ -179,19 +229,25 @@ function draw() {
         ball.direction = -1; // Inverser la direction
         ball.loops++;
         let allerRetours = Math.floor(ball.loops / 2);
-        console.log('Poule rebondit à droite - Rebonds: ' + ball.loops + ' - Allers-retours: ' + allerRetours + '/5');
+        console.log('Poule rebondit à droite - Rebonds: ' + ball.loops + ' - Allers-retours: ' + allerRetours + '/3');
       }
       // Si la poule atteint le bord gauche (et allait vers la gauche)
       else if (ball.x < 200 && ball.direction === -1) {
         ball.direction = 1; // Inverser la direction
         ball.loops++;
         let allerRetours = Math.floor(ball.loops / 2);
-        console.log('Poule rebondit à gauche - Rebonds: ' + ball.loops + ' - Allers-retours: ' + allerRetours + '/5');
+        console.log('Poule rebondit à gauche - Rebonds: ' + ball.loops + ' - Allers-retours: ' + allerRetours + '/3');
         
-        // Après 5 allers-retours complets (10 rebonds), la poule disparait
-        if (ball.loops >= 10) {
+        // Après 2 allers-retours complets (4 rebonds), la poule disparait
+        if (ball.loops >= 4) {
           console.log('POULE ÉCHAPPE ! Total: ' + allerRetours + ' allers-retours - Vies restantes: ' + (life - 1));
           life--;
+          
+          // Jouer le son de perte de vie
+          if (soundHeartbreak) {
+            soundHeartbreak.play();
+          }
+          
           balls.splice(i, 1);
           if (draggedBallIndex === i) {
             dragging = false;
@@ -396,28 +452,73 @@ function draw() {
   }
   
   // Afficher le score et les vies 
+  
+  // Afficher le fond du score (sprite Score.png)
+  let scoreWidth = 0;
+  let scoreHeight = 0;
+  let scoreX = 10;
+  let scoreY = 10;
+  
+  if (scoreSprite && scoreSprite.width > 0) {
+    scoreWidth = scoreSprite.width * 0.7;
+    scoreHeight = scoreSprite.height * 0.7;
+    push();
+    imageMode(CORNER);
+    image(scoreSprite, scoreX, scoreY, scoreWidth, scoreHeight);
+    pop();
+  }
+  
   fill(255);
   textSize(20);
-  textAlign(LEFT);
-  text('Score: ' + score, 20, 30);
+  textAlign(CENTER, CENTER);
+  // Centrer les deux textes au milieu du sprite Score (l'un au-dessus de l'autre)
+  text('Score: ' + score, scoreX + scoreWidth / 2, scoreY + scoreHeight / 2 - 27);
+  text('Rounds: ' + roundsPlayed, scoreX + scoreWidth / 2, scoreY + scoreHeight / 2 - 3);
+  text('Calories: ' + calories, scoreX + scoreWidth / 2, scoreY + scoreHeight / 2 + 21);
+  
+  // Variables communes pour l'alignement des barres
+  let yPosition = 20; // Position verticale commune (changé de -35 à 20 pour être visible)
+  let spacing = 20; // Espacement entre les barres
+  
+  // Tailles d'affichage fixes pour un meilleur alignement
+  let heartDisplayWidth = 200;
+  let ultDisplayWidth = 150;
+  let commonHeight = 80; // Hauteur commune pour aligner les deux jauges
   
   // Afficher les vies avec le sprite sheet des cœurs (en haut à droite)
   if (heartSprite && heartSprite.width > 0) {
     // Calculer quelle frame afficher (inversé : 5 vies = frame 0, 0 vie = frame 5)
     let heartFrame = 5 - life;
-    let frameWidth = heartSprite.width / 6; // 6 frames dans le sprite sheet
-    let sx = heartFrame * frameWidth;
+    let heartFrameWidth = heartSprite.width / 6; // 6 frames dans le sprite sheet
+    let sx = heartFrame * heartFrameWidth;
+    
     push();
     imageMode(CORNER);
-    // Agrandir la barre de vie pour meilleure visibilité et la monter vraiment en haut
-    image(heartSprite, width - frameWidth * 3, -35, frameWidth * 3, heartSprite.height * 3, sx, 0, frameWidth, heartSprite.height);
+    // Positionner en haut à droite
+    image(heartSprite, width - heartDisplayWidth, yPosition, heartDisplayWidth, commonHeight, sx, 0, heartFrameWidth, heartSprite.height);
     pop();
   } else {
     text('Vies: ' + life, 20, 60);
   }
   
-  text('Manches: ' + roundsPlayed, 20, 60);
-  text('Ultime: ' + ultimateCharge + '/5', 20, 120);
+  
+  // Afficher la jauge d'ultime avec le sprite (à côté de la barre de vie, en haut à droite)
+  if (ultimateSprite && ultimateSprite.width > 0) {
+    // Calculer quelle frame afficher (inversé : 0 charge = dernière frame, 5 charges = première frame)
+    let ultimateFrame = 5 - ultimateCharge;
+    let ultimateFrameWidth = ultimateSprite.width / 6; // 6 frames dans le sprite sheet
+    let sx = ultimateFrame * ultimateFrameWidth;
+    
+    push();
+    imageMode(CORNER);
+    // Positionner à gauche de la barre de vie avec même Y et même hauteur
+    let ultX = width - ultDisplayWidth - heartDisplayWidth - spacing;
+    image(ultimateSprite, ultX, yPosition, ultDisplayWidth, commonHeight, sx, 0, ultimateFrameWidth, ultimateSprite.height);
+    pop();
+  } else {
+    textAlign(LEFT);
+    text('Ultime: ' + ultimateCharge + '/5', 20, 120);
+  }
   
   // Afficher le renard animé en bas à gauche
   if (foxJumping) {
@@ -507,15 +608,32 @@ function draw() {
     } else {
       fill(0, 0, 0, 200);
     }
+    
+    // Afficher le renard qui dort au même endroit que celui du jour (animé)
+    if (foxSleepingSprite && foxSleepingSprite.width > 0) {
+      // Animer le sprite (assumer 6 frames comme les autres sprites de renard)
+      foxSleepingTimer++;
+      if (foxSleepingTimer > 10) {
+        foxSleepingFrame = (foxSleepingFrame + 1) % 6; // 6 frames d'animation
+        foxSleepingTimer = 0;
+      }
+      
+      push();
+      imageMode(CORNER);
+      let sx = foxSleepingFrame * 64;
+      let sy = 0;
+      image(foxSleepingSprite, 10, height - 158, 128, 128, sx, sy, 64, 64);
+      pop();
+    }
+    
     fill(255, 255, 255);
     textAlign(CENTER, CENTER);
     textSize(50);
-    text('MANCHE ' + roundsPlayed + ' TERMINÉ!', width / 2, height / 2 - 50);
-    textSize(30);
+    text('Round ' + roundsPlayed + ' finished!', width / 2, height / 2 - 50);    textSize(30);
     text('Score: ' + score, width / 2, height / 2 + 20);
-    text('Vies: ' + life, width / 2, height / 2 + 60);
+    text('Calories: ' + calories, width / 2, height / 2 + 60);
     textSize(20);
-    text('Appuyez sur ESPACE pour continuer', width / 2, height / 2 + 120);
+    text('Press SPACE to continue', width / 2, height / 2 + 120);
     roundCompleteTimer++;
     if (roundCompleteTimer > 120) {
       showRoundComplete = false;
@@ -580,51 +698,98 @@ function startNewGame() {
   ultimateCharge = 0;
   targetedChicken = null;
   balls = [];
+  
+  // Réinitialiser les quotas
+  totalNormalChickens = 0;
+  totalGoldenChickens = 0;
+  totalSoldierChickens = 0;
+  maxNormalChickens = floor(random(6, 11)); // Entre 6 et 10
+  maxGoldenChickens = 5; // Exactement 5
+  maxSoldierChickens = floor(random(4, 7)); // Entre 4 et 6
+  
   // Démarrer la première vague 
   startNewRound();
 }
 
 function startNewRound() {
+  // Vérifier si on a déjà fait 3 manches
+  if (roundsPlayed >= 3) {
+    // Fin du jeu - victoire!
+    alert('FÉLICITATIONS ! Vous avez terminé les 3 manches avec un score de ' + score + ' !');
+    startNewGame();
+    return;
+  }
+  
   // Supprimer les poules de la vague précédente
   balls = [];
-  chickensReachedCoop = 0;
   chickensCaptured = 0;
-  
-  // Augmenter la difficulté à chaque manche
-  let poulesParLigne = 3 + roundsPlayed; // Commence à 3, augmente de 1 par manche
-  chickenSpeed = 0.5 + (roundsPlayed * 0.1); // Vitesse augmente progressivement
   
   // 3 lignes de poules avec décalages
   let lignes = [height / 4 + 10, height / 2 + 90, (height * 3) / 4 + 55];
   
   currentWaveChickens = 0;
   
+  // Déterminer combien de poules de chaque type pour cette manche (aléatoire)
+  let remainingChickens = (maxNormalChickens - totalNormalChickens) + 
+                         (maxGoldenChickens - totalGoldenChickens) + 
+                         (maxSoldierChickens - totalSoldierChickens);
+  
+  let nbPoules;
+  if (roundsPlayed === 2) {
+    // Dernière manche : utiliser toutes les poules restantes
+    nbPoules = remainingChickens;
+  } else {
+    // Générer un nombre aléatoire de poules pour cette manche
+    let minPerRound = floor(remainingChickens / (3 - roundsPlayed) * 0.5);
+    let maxPerRound = floor(remainingChickens / (3 - roundsPlayed) * 1.5);
+    nbPoules = floor(random(minPerRound, maxPerRound + 1));
+  }
+  
   for (let ligne of lignes) {
-    // Nombre aléatoire de poules par ligne
-    let nombrePoulesCetteLigne = floor(random(poulesParLigne - 1, poulesParLigne + 2));
-    currentWaveChickens += nombrePoulesCetteLigne;
+    // Répartir les poules sur les 3 lignes
+    let nombrePoulesCetteLigne = floor(nbPoules / 3) + (ligne === lignes[0] ? nbPoules % 3 : 0);
     
     for (let i = 0; i < nombrePoulesCetteLigne; i++) {
-      let x = 300 + (i * 250) + random(-30, 30); // Espacement avec variation, démarrage plus loin du renard
-      let y = ligne; // Ligne fixe, pas de variation verticale
+      let x = 300 + (i * 250) + random(-30, 30);
+      let y = ligne;
       
-      let chance = random(100);
-      let ballType;
-      if (chance < 70) {
+      // Déterminer le type en fonction des quotas restants
+      let ballType = 0;
+      let availableTypes = [];
+      
+      if (totalNormalChickens < maxNormalChickens) availableTypes.push(0);
+      if (totalGoldenChickens < maxGoldenChickens) availableTypes.push(1);
+      if (totalSoldierChickens < maxSoldierChickens) availableTypes.push(2);
+      
+      // Si tous les quotas sont remplis, prendre des poules normales
+      if (availableTypes.length === 0) {
         ballType = 0;
-      } else if (chance < 80) {
-        ballType = 1;
       } else {
-        ballType = 2;
+        // Choisir aléatoirement parmi les types disponibles avec des pondérations
+        let rand = random(100);
+        if (availableTypes.includes(0) && rand < 50) {
+          ballType = 0; // 50% poule normale
+        } else if (availableTypes.includes(1) && rand < 70) {
+          ballType = 1; // 20% poule dorée
+        } else if (availableTypes.includes(2)) {
+          ballType = 2; // 30% poule soldat
+        } else if (availableTypes.length > 0) {
+          ballType = availableTypes[floor(random(availableTypes.length))];
+        }
       }
+      
+      // Incrémenter les compteurs
+      if (ballType === 0) totalNormalChickens++;
+      else if (ballType === 1) totalGoldenChickens++;
+      else if (ballType === 2) totalSoldierChickens++;
       
       let ball = {
         x: x,
         y: y,
         type: ballType,
-        speed: chickenSpeed + random(-0.1, 0.1), // Petite variation de vitesse
-        loops: 0, // Compteur d'allers-retours
-        direction: 1 // 1 = droite, -1 = gauche
+        speed: 0.5 + (roundsPlayed * 0.1) + random(-0.1, 0.1),
+        loops: 0,
+        direction: 1
       };
       
       if (ballType === 0) {
@@ -649,9 +814,11 @@ function startNewRound() {
       }
       
       balls.push(ball);
+      currentWaveChickens++;
     }
   }
 }
+    
 // Fonction à appeler quand une poule est capturée 
 function captureChicken(ball) {
   if (ball && ball.armor && ball.armor > 1) {
@@ -659,10 +826,16 @@ function captureChicken(ball) {
     return;
   }
   
+  // Jouer le son de mort quand la poule est capturée
+  if (soundMort) {
+    soundMort.play();
+  }
+  
   chickensCaptured++;
   let points = ball && ball.points ? ball.points : 1;
   score += points;
-  
+    
+  calculateCaloriesFromScore();
   // Charger l'ultime (max 5) - UNIQUEMENT avec les golden chickens
   if (ultimateCharge < 5 && ball && ball.type === 1) {
     ultimateCharge++; // Golden chicken charge l'ultime
@@ -695,6 +868,11 @@ function endRound(won) {
   // Les vies baissent UNIQUEMENT quand les poules s'échappent après leurs allers-retours
   // Donc on ne touche PAS aux vies ici
   
+  // Jouer le son de level up si victoire
+  if (won && soundLevelUp) {
+    soundLevelUp.play();
+  }
+  
   // Récupérer toutes les vies toutes les 5 manches 
   if (roundsPlayed % 5 === 0) {
     life = 5;
@@ -714,7 +892,18 @@ function activateUltimate() {
   ultimateActive = true;
   ultimateFreezeTimer = 0;
   ultimateCharge = 0; // Réinitialiser la jauge
+  
+  // Jouer le son de l'ultime
+  if (soundUltime) {
+    soundUltime.play();
+  }
+  
   console.log('ULTIME ACTIVÉ ! Les poules sont gelées pendant 5 secondes');
+}
+
+function calculateCaloriesFromScore() {
+  // 1 point = 50 calories (ajustable)
+  calorie = Math.floor(score * 50);
 }
 
 function keyPressed() {
@@ -727,6 +916,10 @@ function keyPressed() {
   }
   
   if (key === ' ') {
+    // Jouer le son de bouton
+    if (soundButtonPress) {
+      soundButtonPress.play();
+    }
 
     if (showRoundComplete) {
       showRoundComplete = false;
