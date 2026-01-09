@@ -1,0 +1,475 @@
+/* ========================================
+   GLOBAL STYLES
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Raleway', sans-serif;
+    overflow-x: hidden;
+}
+
+/* ========================================
+   MAP OVERLAY
+   ======================================== */
+
+.map-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.map-overlay img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+/* ========================================
+   BUTTONS - SHARED PIXEL ART STYLE
+   ======================================== */
+
+.btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 25px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: 700;
+    font-size: 44px;
+    text-transform: uppercase;
+    color: #232323;
+}
+
+.btn span {
+    position: relative;
+    z-index: 2;
+}
+
+.btn-primary {
+    background: linear-gradient(
+        to bottom,
+        #505050 0%,
+        #505050 11.76%,
+        #f1f1f1 11.76%,
+        #f1f1f1 23.53%,
+        #d9d9d9 23.53%,
+        #d9d9d9 76.47%,
+        #888a89 76.47%,
+        #888a89 88.24%,
+        #505050 88.24%,
+        #505050 100%
+    );
+    border-bottom: 3px solid #606060;
+}
+
+.btn-primary:hover {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+}
+
+.btn-secondary {
+    background: linear-gradient(
+        to bottom,
+        #878787 0%,
+        #878787 11.76%,
+        #f1f1f1 11.76%,
+        #f1f1f1 23.53%,
+        #e6e6e6 23.53%,
+        #e6e6e6 76.47%,
+        #888a89 76.47%,
+        #888a89 88.24%,
+        #878787 88.24%,
+        #878787 100%
+    );
+    border-bottom: 3px solid #797979;
+}
+
+/* ========================================
+   LANDING PAGE STYLES
+   ======================================== */
+
+.landing-page {
+    position: relative;
+    width: 100vw;
+    min-height: 100vh;
+    background: white;
+}
+
+/* Background */
+.landing-page .bg-container {
+    position: absolute;
+    left: -1px;
+    top: 0;
+    width: 1442px;
+    height: 850px;
+    overflow: hidden;
+}
+
+.landing-page .bg-container img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 120.12%;
+    object-fit: cover;
+}
+
+/* Main Title */
+.main-title {
+    position: absolute;
+    left: calc(50% - 419px);
+    top: calc(50% - 193px);
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: 700;
+    font-size: 100px;
+    color: white;
+    text-transform: uppercase;
+    line-height: normal;
+}
+
+/* Buttons Container */
+.buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.landing-page .buttons-container {
+    position: absolute;
+    left: calc(37.5% + 30px);
+    top: calc(50% + 99.5px);
+    transform: translateY(-50%);
+    width: 300px;
+}
+
+.landing-page .btn {
+    width: 100%;
+    height: 85px;
+}
+
+/* Fox Character */
+.fox-character {
+    position: absolute;
+    left: 64px;
+    top: 421px;
+    width: 310px;
+    height: 310px;
+}
+
+.fox-character img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Fox Sprint */
+.fox-sprint {
+    position: absolute;
+    left: calc(37.5% + 99px);
+    top: 1105px;
+    width: 200px;
+    height: 200px;
+}
+
+.fox-sprint img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Section Title */
+.section-title {
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: 700;
+    font-size: 64px;
+    color: white;
+    text-transform: uppercase;
+    line-height: normal;
+}
+
+.landing-page .section-title {
+    position: absolute;
+    left: calc(56.25% - 242px);
+}
+
+.landing-page .section-title:first-of-type {
+    top: 1425px;
+}
+
+/* How to Play Text */
+.how-to-play-text {
+    position: absolute;
+    left: calc(62.5% - 332px);
+    top: 1542px;
+    width: 630px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 18px;
+    line-height: 1.3;
+    color: black;
+}
+
+.how-to-play-text p:first-child {
+    margin-bottom: 0;
+}
+
+/* Info Text */
+.info-text {
+    position: absolute;
+    left: calc(62.5% - 332px);
+    top: 1704px;
+    width: 630px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 18px;
+    line-height: 1.3;
+    color: black;
+}
+
+/* Chicken Character */
+.chicken-character {
+    position: absolute;
+    left: 202px;
+    top: 1584px;
+    width: 240px;
+    height: 240px;
+}
+
+.chicken-character img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Updates Section */
+.updates-section {
+    position: absolute;
+    left: calc(12.5% + 63px);
+    top: 2002px;
+    width: 953px;
+}
+
+.updates-section .section-title {
+    position: relative;
+    left: 0;
+    top: 0;
+    margin-bottom: 42px;
+    width: 100%;
+}
+
+.updates-container {
+    display: flex;
+    gap: 19px;
+    width: 100%;
+}
+
+/* Update Card */
+.update-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.card-border-top,
+.card-border-bottom {
+    background: #919191;
+    height: 10px;
+    width: 285px;
+    flex-shrink: 0;
+}
+
+.card-content {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-border-left,
+.card-border-right {
+    width: 10px;
+    height: 536px;
+    background: #919191;
+    flex-shrink: 0;
+}
+
+.card-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    width: 261px;
+    height: 536px;
+}
+
+.card-photo {
+    background: #d9d9d9;
+    width: 100%;
+    height: 351px;
+    margin-top: 12px;
+}
+
+.card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-text h3 {
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    color: white;
+    text-transform: uppercase;
+    line-height: normal;
+}
+
+.card-text p {
+    font-family: 'Raleway', sans-serif;
+    font-size: 14px;
+    line-height: 1.3;
+    color: black;
+}
+
+/* Footer */
+.footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 2797px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 48px 80px;
+}
+
+.footer-brand {
+    flex: 1;
+}
+
+.footer-title {
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: 700;
+    font-size: 44px;
+    color: white;
+    text-transform: uppercase;
+    line-height: normal;
+}
+
+.footer-copyright {
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    color: #646269;
+    text-align: right;
+}
+
+/* ========================================
+   GAME OVER PAGE STYLES
+   ======================================== */
+
+.gameover-screen {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.gameover-screen body {
+    font-family: 'Pixelify Sans', sans-serif;
+}
+
+/* Background */
+.gameover-screen .bg-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.gameover-screen .bg-container img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(204, 0, 0, 0.5);
+}
+
+/* Game Over Title */
+.gameover-title {
+    position: absolute;
+    left: calc(50% - 311.5px);
+    top: 90px;
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: 700;
+    font-size: 120px;
+    color: white;
+    line-height: normal;
+}
+
+/* Play Again Text */
+.play-again-text {
+    position: absolute;
+    left: calc(50% - 247.5px);
+    top: 258px;
+    font-family: 'Pixelify Sans', sans-serif;
+    font-weight: 700;
+    font-size: 48px;
+    color: white;
+    line-height: normal;
+}
+
+/* Buttons Container for Game Over */
+.gameover-screen .buttons-container {
+    position: absolute;
+    left: 50%;
+    top: 356px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+}
+
+.gameover-screen .btn {
+    width: 200px;
+    height: 85px;
+}
+
+/* Fox Sleeping */
+.fox-sleeping {
+    position: absolute;
+    left: 444px;
+    top: 457px;
+    width: 218px;
+    height: 218px;
+}
+
+.fox-sleeping img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

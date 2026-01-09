@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chicken Warrior - Landing Page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Raleway:wght@400&family=Inter:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Landing Page Container -->
+    <div class="landing-page">
+        <!-- Background Image -->
+        <div class="bg-container">
+            <img src="https://www.figma.com/api/mcp/asset/035cfead-3b17-43d9-92a1-ba9f01225373" alt="Background">
+        </div>
+
+        <!-- Main Title -->
+        <h1 class="main-title">HANDS ON THE FARM</h1>
+
+        <!-- Buttons Section -->
+        <div class="buttons-container">
+            <button class="btn btn-primary" onclick="showMap()">
+                <span>START</span>
+            </button>
+        </div>
+
+        
+
+        <!-- Map Overlay (caché par défaut) -->
+        <div id="mapOverlay" class="map-overlay" style="display: none;" onclick="window.location.href='index.html'">
+            <img src="assets/map.png" alt="Map">
+        </div>
+    </div>
+
+    <script>
+        // Charger et jouer la musique de lobby
+        const lobbyMusic = new Audio('assets/lobby.mp3');
+        lobbyMusic.loop = true;
+        lobbyMusic.volume = 0.4;
+        
+        // Jouer la musique dès le chargement de la page
+        window.addEventListener('load', () => {
+            lobbyMusic.play().catch(e => {
+                // Si le navigateur bloque l'autoplay, jouer au premier clic
+                document.body.addEventListener('click', () => {
+                    lobbyMusic.play();
+                }, { once: true });
+            });
+        });
+        
+        function showMap() {
+            document.getElementById('mapOverlay').style.display = 'flex';
+            // Jouer un son de clic
+            const clickSound = new Audio('assets/button-press.mp3');
+            clickSound.play();
+        }
+    </script>
+</body>
+</html>
