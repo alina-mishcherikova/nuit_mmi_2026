@@ -10,6 +10,7 @@ let draggedBallIndex = -1;
 let score = 0;
 let life = 5;
 let roundsPlayed = 0;
+let calories = 0;
 let boolGameOver = false;
 let currentWaveChickens = 0;
 let chickensCaptured = 0;
@@ -94,7 +95,7 @@ function draw() {
     let handX = width - (sumX / hand.keypoints.length);
     let handY = sumY / hand.keypoints.length;
     smoothHandX = lerp(smoothHandX, handX, 0.7);
-    smoothHandY = lerp(smoothHandY, handY, 0.7); 
+    smoothHandY = lerp(smoothHandY, handY, 0.7);
     let fistDetected = isFist(hand);
 
     if (fistDetected && !fistWasClosed) {
@@ -163,31 +164,30 @@ function draw() {
 
   for (let i = balls.length - 1; i >= 0; i--) {
     let ball = balls[i];
-        // Ignorer les poules qui sont en train d'être mangées
+    // Ignorer les poules qui sont en train d'être mangées
     if (ball.beingEaten) {
       continue;
     }
-        // Ne bouger que les poules qui ne sont pas traînées
+    // Ne bouger que les poules qui ne sont pas traînées
     if (!dragging || draggedBallIndex !== i) {
       // Ne pas bouger si l'ultime est actif
       if (!ultimateActive) {
         ball.x += ball.speed * ball.direction;
       }
-      
+
       // Si la poule atteint le bord droit (et allait vers la droite)
       if (ball.x > width + 50 && ball.direction === 1) {
         ball.direction = -1; // Inverser la direction
         ball.loops++;
         let allerRetours = Math.floor(ball.loops / 2);
-        console.log('Poule rebondit à droite - Rebonds: ' + ball.loops + ' - Allers-retours: ' + allerRetours + '/5');
       }
       // Si la poule atteint le bord gauche (et allait vers la gauche)
       else if (ball.x < 200 && ball.direction === -1) {
         ball.direction = 1; // Inverser la direction
         ball.loops++;
         let allerRetours = Math.floor(ball.loops / 2);
-        console.log('Poule rebondit à gauche - Rebonds: ' + ball.loops + ' - Allers-retours: ' + allerRetours + '/5');
-        
+
+
         // Après 5 allers-retours complets (10 rebonds), la poule disparait
         if (ball.loops >= 10) {
           console.log('POULE ÉCHAPPE ! Total: ' + allerRetours + ' allers-retours - Vies restantes: ' + (life - 1));
@@ -199,7 +199,7 @@ function draw() {
           } else if (draggedBallIndex > i) {
             draggedBallIndex--;
           }
-          
+
           if (life <= 0) {
             boolGameOver = true;
           }
@@ -207,14 +207,14 @@ function draw() {
         }
       }
     }
-    
+
     // Gérer l'animation de transition
     if (ball.transitioning) {
       ball.transitionTimer++;
       if (ball.transitionTimer > 5) { // Changer de frame toutes les 5 frames
         ball.transitionFrame++;
         ball.transitionTimer = 0;
-        
+
         if (ball.transitionFrame >= 8) { // 8 frames de transition
           // Fin de la transition, transformer en poule normale
           ball.transitioning = false;
@@ -240,10 +240,10 @@ function draw() {
       foxJumpTimer = 0;
       pendingChickenToEat = ball;
       ball.beingEaten = true; // Marquer la poule comme en train d'être mangée
-      
+
       // La poule sera supprimée à la frame 8 de l'animation
       captureChicken(ball); // Compter les points immédiatement
-      
+
       if (draggedBallIndex === i) {
         dragging = false;
         draggedBallIndex = -1;
@@ -252,7 +252,7 @@ function draw() {
       }
       continue;
     }
-    
+
     // Afficher l'animation de transition
     if (ball.transitioning) {
       push();
@@ -278,7 +278,7 @@ function draw() {
         ball.frame = (ball.frame + 1) % 3; // 3 frames dans le sprite
         ball.frameTimer = 0;
       }
-      
+
       push();
       imageMode(CENTER);
       // Miroir si la poule va vers la gauche
@@ -306,7 +306,7 @@ function draw() {
         ball.frame = (ball.frame + 1) % 5; // 5 frames dans le sprite
         ball.frameTimer = 0;
       }
-      
+
       push();
       imageMode(CENTER);
       // Miroir si la poule va vers la gauche
@@ -332,7 +332,7 @@ function draw() {
         ball.frame = (ball.frame + 1) % 3;
         ball.frameTimer = 0;
       }
-      
+
       push();
       imageMode(CENTER);
       // Miroir si la poule va vers la gauche
@@ -356,23 +356,23 @@ function draw() {
       circle(ball.x, ball.y, ball.r);
     }
   }
-  
+
   // Afficher la main au-dessus de tout (après les poules)
   if (hands.length > 0) {
     push();
     translate(width, 0);
     scale(-1, 1);
-    
+
     let hand = hands[0];
     let fistDetected = isFist(hand);
-    
+
     // Afficher le sprite de la main au lieu du cercle
     if (handSprite && handSprite.width > 0) {
       // Frame 0 = main ouverte, Frame 1 = main fermée (poing)
       let handFrame = (fistDetected && dragging) ? 1 : 0;
       let frameWidth = handSprite.width / 2; // 2 frames dans le sprite
       let sx = handFrame * frameWidth;
-      
+
       imageMode(CENTER);
       // Agrandir la main pour meilleure visibilité
       image(handSprite, width - smoothHandX, smoothHandY, frameWidth * 1.5, handSprite.height * 1.5, sx, 0, frameWidth, handSprite.height);
@@ -394,13 +394,13 @@ function draw() {
     }
     pop();
   }
-  
+
   // Afficher le score et les vies 
   fill(255);
   textSize(20);
   textAlign(LEFT);
   text('Score: ' + score, 20, 30);
-  
+
   // Afficher les vies avec le sprite sheet des cœurs (en haut à droite)
   if (heartSprite && heartSprite.width > 0) {
     // Calculer quelle frame afficher (inversé : 5 vies = frame 0, 0 vie = frame 5)
@@ -415,10 +415,11 @@ function draw() {
   } else {
     text('Vies: ' + life, 20, 60);
   }
-  
-  text('Manches: ' + roundsPlayed, 20, 60);
-  text('Ultime: ' + ultimateCharge + '/5', 20, 120);
-  
+
+  text('Rounds: ' + roundsPlayed, 20, 60);
+  text('Calories: ' + calories, 20, 90);
+  text('Ultimate: ' + ultimateCharge + '/5', 20, 120);
+
   // Afficher le renard animé en bas à gauche
   if (foxJumping) {
     // Animation de saut
@@ -427,7 +428,7 @@ function draw() {
       if (foxJumpTimer > 3) { // Animation plus rapide pour le saut
         foxJumpFrame++;
         foxJumpTimer = 0;
-        
+
         // Frame 8 = moment où la poule disparait
         if (foxJumpFrame === 8 && pendingChickenToEat) {
           // Supprimer la poule de la liste
@@ -443,7 +444,7 @@ function draw() {
           }
           pendingChickenToEat = null;
         }
-        
+
         // Fin de l'animation de saut (environ 12-15 frames)
         if (foxJumpFrame >= 12) {
           foxJumping = false;
@@ -451,7 +452,7 @@ function draw() {
           foxFrame = 0;
         }
       }
-      
+
       push();
       imageMode(CORNER);
       let sx = foxJumpFrame * 64;
@@ -467,7 +468,7 @@ function draw() {
         foxFrame = (foxFrame + 1) % 6; // 6 frames d'animation
         foxFrameTimer = 0;
       }
-      
+
       push();
       imageMode(CORNER);
       let sx = foxFrame * 64;
@@ -476,12 +477,12 @@ function draw() {
       pop();
     }
   }
-  
+
   // Minimap avec vidéo et squelette de la main superposés
   push();
   translate(150, 140);
   scale(-1, 1);
-  
+
   // Afficher la vidéo en arrière-plan
   image(video, 0, 0, 150, 120);
 
@@ -496,7 +497,7 @@ function draw() {
       fill(0, 255, 0);
       noStroke();
       circle(x, y, 5);
-    }      
+    }
   }
   pop();
   noStroke();
@@ -510,12 +511,12 @@ function draw() {
     fill(255, 255, 255);
     textAlign(CENTER, CENTER);
     textSize(50);
-    text('MANCHE ' + roundsPlayed + ' TERMINÉ!', width / 2, height / 2 - 50);
+    text('Round ' + roundsPlayed + ' finished!', width / 2, height / 2 - 50);
     textSize(30);
     text('Score: ' + score, width / 2, height / 2 + 20);
     text('Vies: ' + life, width / 2, height / 2 + 60);
     textSize(20);
-    text('Appuyez sur ESPACE pour continuer', width / 2, height / 2 + 120);
+    text('Press SPACE to continue', width / 2, height / 2 + 120);
     roundCompleteTimer++;
     if (roundCompleteTimer > 120) {
       showRoundComplete = false;
@@ -535,7 +536,7 @@ function getClosestLine(y) {
   let lignes = [height / 4 + 10, height / 2 + 90, (height * 3) / 4 + 55];
   let closestLine = lignes[0];
   let minDist = abs(y - lignes[0]);
-  
+
   for (let ligne of lignes) {
     let d = abs(y - ligne);
     if (d < minDist) {
@@ -543,7 +544,7 @@ function getClosestLine(y) {
       closestLine = ligne;
     }
   }
-  
+
   return closestLine;
 }
 
@@ -589,25 +590,25 @@ function startNewRound() {
   balls = [];
   chickensReachedCoop = 0;
   chickensCaptured = 0;
-  
+
   // Augmenter la difficulté à chaque manche
   let poulesParLigne = 3 + roundsPlayed; // Commence à 3, augmente de 1 par manche
   chickenSpeed = 0.5 + (roundsPlayed * 0.1); // Vitesse augmente progressivement
-  
+
   // 3 lignes de poules avec décalages
   let lignes = [height / 4 + 10, height / 2 + 90, (height * 3) / 4 + 55];
-  
+
   currentWaveChickens = 0;
-  
+
   for (let ligne of lignes) {
     // Nombre aléatoire de poules par ligne
     let nombrePoulesCetteLigne = floor(random(poulesParLigne - 1, poulesParLigne + 2));
     currentWaveChickens += nombrePoulesCetteLigne;
-    
+
     for (let i = 0; i < nombrePoulesCetteLigne; i++) {
       let x = 300 + (i * 250) + random(-30, 30); // Espacement avec variation, démarrage plus loin du renard
       let y = ligne; // Ligne fixe, pas de variation verticale
-      
+
       let chance = random(100);
       let ballType;
       if (chance < 70) {
@@ -617,7 +618,7 @@ function startNewRound() {
       } else {
         ballType = 2;
       }
-      
+
       let ball = {
         x: x,
         y: y,
@@ -626,7 +627,7 @@ function startNewRound() {
         loops: 0, // Compteur d'allers-retours
         direction: 1 // 1 = droite, -1 = gauche
       };
-      
+
       if (ballType === 0) {
         ball.r = 64;
         ball.color = [255, 0, 0];
@@ -647,7 +648,7 @@ function startNewRound() {
         ball.frame = 0;
         ball.frameTimer = 0;
       }
-      
+
       balls.push(ball);
     }
   }
@@ -658,11 +659,13 @@ function captureChicken(ball) {
     ball.armor--;
     return;
   }
-  
+
   chickensCaptured++;
   let points = ball && ball.points ? ball.points : 1;
   score += points;
-  
+  // Mettre à jour les calories en fonction du score
+  calculateCaloriesFromScore();
+
   // Charger l'ultime (max 5) - UNIQUEMENT avec les golden chickens
   if (ultimateCharge < 5 && ball && ball.type === 1) {
     ultimateCharge++; // Golden chicken charge l'ultime
@@ -671,7 +674,7 @@ function captureChicken(ball) {
       ultimateCharge = 5;
     }
   }
-  
+
   // Si toutes les poules sont capturées = victoire 
   if (chickensCaptured >= currentWaveChickens) {
     endRound(true);
@@ -684,9 +687,9 @@ function activateUltimate() {
   if (ultimateCharge >= 5) {
     // TODO: Étourdir toutes les poules en mouvement // Pour chaque poule: // - Arrêter son mouvement temporairement (stunned = true) // - Ajouter animation d'étourdissement // - Après quelques secondes, reprendre le mouvement
     ultimateCharge = 0; // Consommer l'ultime 
-    console.log('ULTIME ACTIVÉ - Onde de choc!');
+    console.log('ULTIMATE ON - Shockwave!');
   } else {
-    console.log('Ultime pas encore chargé: ' + ultimateCharge + '/5');
+    console.log('Ultimate not yet loaded: ' + ultimateCharge + '/5');
   }
 }
 
@@ -694,12 +697,12 @@ function endRound(won) {
   roundsPlayed++;
   // Les vies baissent UNIQUEMENT quand les poules s'échappent après leurs allers-retours
   // Donc on ne touche PAS aux vies ici
-  
+
   // Récupérer toutes les vies toutes les 5 manches 
   if (roundsPlayed % 5 === 0) {
     life = 5;
   }
-  
+
   // Gérer le timer de l'ultime
   if (ultimateActive) {
     ultimateFreezeTimer++;
@@ -714,7 +717,7 @@ function activateUltimate() {
   ultimateActive = true;
   ultimateFreezeTimer = 0;
   ultimateCharge = 0; // Réinitialiser la jauge
-  console.log('ULTIME ACTIVÉ ! Les poules sont gelées pendant 5 secondes');
+  console.log('ULTIMATE ACTIVATED! The hens are frozen for 5 seconds');
 }
 
 function keyPressed() {
@@ -725,7 +728,7 @@ function keyPressed() {
       return;
     }
   }
-  
+
   if (key === ' ') {
 
     if (showRoundComplete) {
@@ -739,7 +742,7 @@ function keyPressed() {
       startNewGame();
       return;
     }
-    
+
     // Tirer sur la poule avec casque visée
     if (targetedChicken && targetedChicken.type === 2) {
       targetedChicken.armor--;
@@ -752,4 +755,10 @@ function keyPressed() {
       targetedChicken = null;
     }
   }
+}
+
+// Calcule et met à jour la variable `calorie` en fonction du score
+function calculateCaloriesFromScore() {
+  // 1 point = 50 calories (ajustable)
+  calorie = Math.floor(score * 50);
 }
